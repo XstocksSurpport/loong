@@ -52,6 +52,9 @@ code.mono-addr {
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem 1.25rem 2rem;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
 }
 
 .topbar {
@@ -193,6 +196,7 @@ code.mono-addr {
   position: relative;
   top: 0;
   left: 0;
+  touch-action: manipulation;
 }
 
 .btn:hover:not(:disabled) {
@@ -238,6 +242,8 @@ code.mono-addr {
 .table-wrap {
   margin-top: 0.75rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   border: 3px solid var(--border);
   border-radius: 0;
   min-height: 28rem;
@@ -247,6 +253,7 @@ code.mono-addr {
 
 .quotes {
   width: 100%;
+  min-width: 36rem;
   border-collapse: collapse;
   font-size: 1rem;
 }
@@ -320,9 +327,10 @@ code.mono-addr {
 
 .qty-input {
   width: 3.6rem;
+  min-height: 2.25rem;
   padding: 0.2rem 0.25rem;
   font-family: inherit;
-  font-size: 1.05rem;
+  font-size: max(16px, 1.05rem);
   font-weight: 700;
   text-align: center;
   color: var(--text);
@@ -359,4 +367,115 @@ code.mono-addr {
   line-height: 1.45;
   border-top: 3px dashed var(--border);
   padding-top: 1rem;
+}
+
+@media (max-width: 720px) {
+  html,
+  body {
+    font-size: 18px;
+  }
+
+  #app {
+    padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .brand {
+    width: 100%;
+  }
+
+  .logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  .wallet-area {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .wallet-area .btn.primary {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1.1rem;
+  }
+
+  .balances {
+    width: 100%;
+  }
+
+  .notice-banner {
+    font-size: 1rem;
+    padding: 0.5rem 0.6rem;
+    line-height: 1.4;
+  }
+
+  .pager {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .page-info {
+    flex: 1 1 100%;
+    text-align: center;
+    order: -1;
+  }
+
+  .table-wrap {
+    min-height: 16rem;
+  }
+
+  .quotes {
+    min-width: 34rem;
+  }
+
+  .quotes th,
+  .quotes td {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.92rem;
+  }
+
+  .qty-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.25rem;
+  }
+
+  .qty-input {
+    min-height: 44px;
+    width: 3.2rem;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .foot {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .brand-text h1 {
+    font-size: clamp(1.25rem, 8vw, 1.75rem);
+  }
+
+  .sub {
+    font-size: 0.95rem;
+  }
+
+  .quotes {
+    min-width: 31rem;
+  }
 }
