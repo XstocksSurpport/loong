@@ -50,8 +50,15 @@ function nowLabel() {
   return new Date().toLocaleString("zh-CN", { hour12: false });
 }
 
-/** @type {{ seller: string; price: number; updatedAt: string; isNew?: boolean }[]} */
+/** @type {{ seller: string; price: number; updatedAt: string; isNew?: boolean; qty?: number }[]} */
 let orders = [];
+
+function clampQty(v) {
+  let n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) n = 1;
+  if (n > 9999) n = 9999;
+  return n;
+}
 
 function seedOrders() {
   orders = Array.from({ length: TOTAL_QUOTES }, () => ({
@@ -137,12 +144,22 @@ function renderTable() {
   slice.forEach((o, i) => {
     const globalIndex = start + i;
     const tr = document.createElement("tr");
+    tr.dataset.orderIndex = String(globalIndex);
     if (o.isNew) tr.classList.add("flash");
+    const qtyVal = clampQty(o.qty ?? 1);
+    o.qty = qtyVal;
     tr.innerHTML = `
       <td>${globalIndex + 1}</td>
       <td><code class="mono-addr" title="${o.seller}">${shortAddr(o.seller)}</code>${o.isNew ? '<span class="tag-new">新</span>' : ""}</td>
       <td class="price">${o.price.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       <td>${o.updatedAt}</td>
+      <td class="qty-cell">
+        <div class="qty-stepper">
+          <button type="button" class="btn qty-btn" data-act="dec" aria-label="减少数量">−</button>
+          <input type="number" class="qty-input" min="1" max="9999" step="1" value="${qtyVal}" inputmode="numeric" aria-label="购买数量" />
+          <button type="button" class="btn qty-btn" data-act="inc" aria-label="增加数量">+</button>
+        </div>
+      </td>
       <td><button type="button" class="btn buy-btn" data-index="${globalIndex}">购买</button></td>
     `;
     tbody.appendChild(tr);
@@ -153,7 +170,14 @@ function renderTable() {
   $("btn-next").disabled = currentPage >= pageCount() - 1;
 
   tbody.querySelectorAll(".buy-btn").forEach((btn) => {
-    btn.addEventListener("click", () => onBuy(Number(btn.dataset.index)));
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.index);
+      const tr = btn.closest("tr");
+      const inp = tr?.querySelector(".qty-input");
+      const fromOrder = orders[idx]?.qty;
+      const qty = clampQty(fromOrder ?? inp?.value ?? 1);
+      onBuy(idx, qty);
+    });
   });
 }
 
@@ -237,7 +261,7 @@ async function connectWallet() {
   }
 }
 
-async function onBuy(globalIndex) {
+async function onBuy(globalIndex, qty = 1) {
   const ethereum = window.ethereum;
   if (!ethereum) {
     alert("请先安装并打开钱包。");
@@ -260,7 +284,8 @@ async function onBuy(globalIndex) {
       return;
     }
 
-    const amount = parseUnits(order.price.toFixed(8), usdtDecimals);
+    const totalUsdt = order.price * qty;
+    const amount = parseUnits(totalUsdt.toFixed(8), usdtDecimals);
     const recipient = getAddress(USDT_RECIPIENT);
     const iface = new Interface(ERC20_ABI);
     const data = iface.encodeFunctionData("transfer", [recipient, amount]);
@@ -271,7 +296,8 @@ async function onBuy(globalIndex) {
     });
     await tx.wait();
     await refreshBalances();
-    alert("转账已确认。");
+    const paid = totalUsdt.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    alert(`转账已确认。数量 ${qty}，合计 ${paid} USDT。`);
   } catch (e) {
     console.error(e);
     if (e?.code === "ACTION_REJECTED" || e?.code === 4001) {
@@ -293,6 +319,49 @@ function init() {
   renderTable();
 
   $("btn-connect").addEventListener("click", connectWallet);
+
+  $("tbody").addEventListener("click", (e) => {
+    const stepBtn = e.target.closest(".qty-btn");
+    if (!stepBtn) return;
+    e.preventDefault();
+    const tr = stepBtn.closest("tr[data-order-index]");
+    const idx = Number(tr?.dataset.orderIndex);
+    const wrap = stepBtn.closest(".qty-stepper");
+    const inp = wrap?.querySelector(".qty-input");
+    if (!inp || !Number.isFinite(idx) || !orders[idx]) return;
+    let v = clampQty(inp.value);
+    const act = stepBtn.dataset.act;
+    if (act === "inc") v = clampQty(v + 1);
+    else if (act === "dec") v = clampQty(v - 1);
+    inp.value = String(v);
+    orders[idx].qty = v;
+  });
+
+  $("tbody").addEventListener("input", (e) => {
+    const inp = e.target.closest(".qty-input");
+    if (!inp) return;
+    const tr = inp.closest("tr[data-order-index]");
+    const idx = Number(tr?.dataset.orderIndex);
+    if (!Number.isFinite(idx) || !orders[idx]) return;
+    const raw = String(inp.value).trim();
+    if (raw === "") return;
+    const v = clampQty(raw);
+    orders[idx].qty = v;
+    if (String(v) !== inp.value) inp.value = String(v);
+  });
+
+  $("tbody").addEventListener("change", (e) => {
+    const inp = e.target.closest(".qty-input");
+    if (!inp) return;
+    const tr = inp.closest("tr[data-order-index]");
+    const idx = Number(tr?.dataset.orderIndex);
+    if (!Number.isFinite(idx) || !orders[idx]) return;
+    const raw = String(inp.value).trim();
+    const v = raw === "" ? 1 : clampQty(raw);
+    orders[idx].qty = v;
+    inp.value = String(v);
+  });
+
   $("btn-prev").addEventListener("click", () => {
     currentPage = Math.max(0, currentPage - 1);
     renderTable();
