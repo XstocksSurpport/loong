@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>龙珠交易市场 · BNB Chain</title>
+    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <img
+            class="logo"
+            src="/logo.jpg"
+            width="64"
+            height="64"
+            alt="龙珠"
+            decoding="async"
+            fetchpriority="high"
+          />
+          <div class="brand-text">
+            <h1>龙珠交易市场</h1>
+            <p class="sub">
+              代币
+              <code id="token-addr">0x77a0b34da3f61a60dd411460f253b3cf17bd7777</code>
+              · BNB Smart Chain
+            </p>
+          </div>
+        </div>
+        <div class="wallet-area">
+          <span id="network-badge" class="badge hidden">BSC</span>
+          <span id="account" class="account hidden"></span>
+          <div id="balances" class="balances hidden" aria-live="polite">
+            <div class="bal-row"><span class="bal-label">LOONG</span> <span id="bal-loong" class="bal-val">—</span></div>
+            <div class="bal-row"><span class="bal-label">USDT</span> <span id="bal-usdt" class="bal-val">—</span></div>
+          </div>
+          <button type="button" id="btn-connect" class="btn primary">连接钱包</button>
+        </div>
+      </header>
+
+      <p class="notice-banner" role="status">
+        卖家龙珠已提前上押担保地址，下单成功后龙珠将自动转账到你的账户
+      </p>
+
+      <main>
+        <section class="toolbar">
+          <div class="pager">
+            <button type="button" id="btn-prev" class="btn">上一页</button>
+            <span id="page-info" class="page-info"></span>
+            <button type="button" id="btn-next" class="btn">下一页</button>
+          </div>
+        </section>
+
+        <div class="table-wrap">
+          <table class="quotes">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>卖家地址</th>
+                <th>报价 (USDT)</th>
+                <th>更新时间</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </main>
+
+      <footer class="foot">
+        <p>使用 ethers.js 与 EIP-1193 兼容钱包；连接后将请求切换到 BSC（Chain ID 56）。购买将发起 USDT (BEP-20) 转账。</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
